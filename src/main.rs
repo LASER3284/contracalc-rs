@@ -17,10 +17,17 @@ mod calc {
         PITCH_5MM_BELT / PI * <i32 as Into<f64>>::into(teeth)
     }
 
-    pub fn center_to_center(dp1: f64, dp2: f64, length: f64) -> f64 {
-        let generic = PI * 2.0 * (dp1 + dp2) - length * 4.0 * PITCH_5MM_BELT;
+    pub fn center_to_center(dp1: f64, dp2: f64, length: f64, pitch: f64) -> f64 {
+        let generic = PI * 2.0 * (dp1 + dp2) - length * 4.0 * pitch;
 
          (-generic + f64::sqrt(f64::powi(generic, 2) - 32.0 * f64::powi(dp1 + dp2, 2))) / 16.0
+    }
+
+    pub fn belt_length_actual(dp1: f64, dp2: f64, teeth: f64, pitch: f64) -> (f64, f64) {
+        let teeth = teeth.floor();
+        let teeth = if teeth % 5.0 >= 2.5 { teeth + (5.0 - (teeth % 5.0)) } else { teeth - (teeth % 5.0) };
+
+        (teeth, center_to_center(dp1, dp2, teeth, pitch))
     }
 }
 
@@ -50,12 +57,16 @@ fn main() {
                 let dp1 = calc::get_dp(pulley_one_teeth);
                 let dp2 = calc::get_dp(pulley_two_teeth);
                 let pulley_desired_f64 = pulley_desired_f64 * 2.0 + PI / 2.0 * (dp1 + dp2) + f64::powi(dp1 + dp2, 2) / 4.0 / pulley_desired_f64;
-                ui.text(&format!("Closest spacing less than or equal to desired, with exactly toothed belt: {}",
-                    calc::center_to_center(
-                        dp1,
-                        dp2,
-                        f64::floor(pulley_desired_f64 / calc::PITCH_5MM_BELT)
-                    )
+
+                let (teeth, ctc) = calc::belt_length_actual(
+                    dp1,
+                    dp2,
+                    f64::floor(pulley_desired_f64 / calc::PITCH_5MM_BELT),
+                    calc::PITCH_5MM_BELT
+                );
+
+                ui.text(&format!("Number of teeth closest to desired: {}\nCenter-to-Center closest to desired: {}in",
+                    teeth, ctc
                 ));
             });
     })
