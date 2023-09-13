@@ -3,6 +3,7 @@ mod support;
 mod calc {
     use std::f64::consts::PI;
 
+    /// Dynamically converts from millimeters to inches.
     pub fn mm_to_inches(mm: f64) -> f64 {
         mm / 25.4
     }
@@ -13,16 +14,21 @@ mod calc {
     /// Units are in Inches.
     pub const PITCH_3MM_BELT: f64 = 3.0 / 25.4;
 
-    pub fn get_dp(teeth: i32) -> f64 {
+    /// Returns the diametric pitch (DP) of a tooth count for a 5mm belt
+    pub fn get_dp_5mm(teeth: i32) -> f64 {
         PITCH_5MM_BELT / PI * <i32 as Into<f64>>::into(teeth)
     }
 
+    /// Finds the Center-to-Center of two pulleys based on the DP, desired
+    /// length, and pitch of the belts.
     pub fn center_to_center(dp1: f64, dp2: f64, length: f64, pitch: f64) -> f64 {
         let generic = PI * 2.0 * (dp1 + dp2) - length * 4.0 * pitch;
 
          (-generic + f64::sqrt(f64::powi(generic, 2) - 32.0 * f64::powi(dp1 + dp2, 2))) / 16.0
     }
 
+    /// Finds the actual tooth count and Center-to-Center that are closest to
+    /// the desired length, with the appropriate DP of each pulley.
     pub fn belt_length_actual(dp1: f64, dp2: f64, teeth: f64, pitch: f64) -> (f64, f64) {
         let teeth = teeth.floor();
         let teeth = if teeth % 5.0 >= 2.5 { teeth + (5.0 - (teeth % 5.0)) } else { teeth - (teeth % 5.0) };
@@ -54,8 +60,8 @@ fn main() {
                     .build();
                 let pulley_desired_f64 = <f32 as Into<f64>>::into(pulley_desired_space);
 
-                let dp1 = calc::get_dp(pulley_one_teeth);
-                let dp2 = calc::get_dp(pulley_two_teeth);
+                let dp1 = calc::get_dp_5mm(pulley_one_teeth);
+                let dp2 = calc::get_dp_5mm(pulley_two_teeth);
                 let pulley_desired_f64 = pulley_desired_f64 * 2.0 + PI / 2.0 * (dp1 + dp2) + f64::powi(dp1 + dp2, 2) / 4.0 / pulley_desired_f64;
 
                 let (teeth, ctc) = calc::belt_length_actual(

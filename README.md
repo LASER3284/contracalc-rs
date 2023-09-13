@@ -4,6 +4,22 @@ ContraCalc is a program meant to calculate teh Center-to-Center spacing of
 pulleys with a contrabelt (aka, twisted belt). Currently, not all features are
 properly implemented.
 
+## Usage
+### Dependencies
+Rustup toolchain must be installed. MSRV is 1.67. Cargo package manager must be
+installed with Rustup.
+
+### Running
+You can run from the working directory with:
+```
+cargo run
+```
+
+You can build the binary from the working directory with:
+```
+cargo build --release
+```
+
 ## Copyright
 Copyright (C) 2023, LASER 3284
 
