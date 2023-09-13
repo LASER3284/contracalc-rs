@@ -1,6 +1,6 @@
 # ContraCalc
-### Inspired by FRC Team 3284
-ContraCalc is a program meant to calculate teh Center-to-Center spacing of
+### Created by FRC Team 3284
+ContraCalc is a program meant to calculate the Center-to-Center spacing of
 pulleys with a contrabelt (aka, twisted belt). Currently, not all features are
 properly implemented.
 
