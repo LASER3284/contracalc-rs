@@ -32,12 +32,66 @@ mod calc {
 
         /// Finds the actual tooth count and Center-to-Center that are closest
         /// to the desired length, with the appropriate diameter of each pulley,
-        /// as well as desired tooth count, and pitch.
+        /// as well as desired tooth count, and pitch. Rounds the tooth count to
+        /// the nearest multiple of 5.
         pub fn belt_length_actual(diam1: f64, diam2: f64, teeth: f64, pitch: f64) -> (f64, f64) {
             let teeth = teeth.floor();
             let teeth = if teeth % 5.0 >= 2.5 { teeth + (5.0 - (teeth % 5.0)) } else { teeth - (teeth % 5.0) };
 
             (teeth, center_to_center(diam1, diam2, teeth, pitch))
+        }
+
+        /// Finds the Center-to-Center of a set of pulleys given their
+        /// diameters, tooth count of the belt, and pitch of the belt. Does not
+        /// round the tooth count to the nearest multiple of 5.
+        pub fn belt_length_no_round(diam1: f64, diam2: f64, teeth: f64, pitch: f64) -> (f64, f64) {
+            let teeth = teeth.floor();
+            (teeth, center_to_center(diam1, diam2, teeth, pitch))
+        }
+
+        /// Runs the calculations and outputs them to ImGui.
+        ///
+        /// Note: `ui` is of type `&&mut imgui::Ui`, which is a ref to a mut
+        /// ref. This only works, and I would not normally reccomend.
+        pub fn output_prompt(ui: &&mut imgui::Ui, diam1: f64, diam2: f64, desired: f64) {
+            let (teeth, ctc) = belt_length_actual(
+                diam1,
+                diam2,
+                f64::floor(desired / super::PITCH_5MM_BELT),
+                super::PITCH_5MM_BELT
+                );
+
+            ui.text_colored([1.0, 1.0, 0.0, 1.0], "Belts with teeth of multiple of 5");
+            ui.text(format!("Number of teeth: {}\nCenter-to-Center: {}in",
+                teeth,
+                ctc
+            ));
+
+            let (teeth, c2c) = belt_length_no_round(
+                diam1,
+                diam2,
+                f64::floor(desired / super::PITCH_5MM_BELT),
+                super::PITCH_5MM_BELT
+            );
+
+            ui.text_colored([1.0, 1.0, 0.0, 1.0], "Exactly toothed belt lower");
+            ui.text(format!("Number of teeth: {}\nCenter-to-Center: {}",
+                teeth,
+                c2c
+            ));
+
+            let (teeth, c2c) = belt_length_no_round(
+                diam1,
+                diam2,
+                f64::ceil(desired / super::PITCH_5MM_BELT),
+                super::PITCH_5MM_BELT
+            );
+
+            ui.text_colored([1.0, 1.0, 0.0, 1.0], "Exactly toothed belt upper");
+            ui.text(format!("Number of teeth: {}\nCenter-to-Center: {}",
+                teeth,
+                c2c
+            ));
         }
     }
 
@@ -55,11 +109,65 @@ mod calc {
 
         /// Finds the actual tooth count and Center-to-Center that are closest
         /// to the desired length, based on radii, tooth count, and pitch.
+        /// Rounds the tooth count to the nearest multiple of 5.
         pub fn belt_length_actual(r1: f64, r2: f64, teeth: f64, pitch: f64) -> (f64, f64) {
             let teeth = teeth.floor();
             let teeth = if teeth % 5.0 >= 2.5 { teeth + (5.0 - (teeth % 5.0)) } else { teeth - (teeth % 5.0) };
 
             (teeth, center_to_center(r1, r2, teeth, pitch))
+        }
+
+        /// Finds the Center-to-Center of two pulleys given their radii, tooth
+        /// count of the belt, and pitch of the belt. Does not round tooth count
+        /// to nearest multiple of 5.
+        pub fn belt_length_no_round(r1: f64, r2: f64, teeth: f64, pitch: f64) -> (f64, f64) {
+            let teeth = teeth.floor();
+            (teeth, center_to_center(r1, r2, teeth, pitch))
+        }
+
+        /// Runs the calculations and outputs them to ImGui.
+        ///
+        /// Note: `ui` is of type `&&mut imgui::Ui`, which is a ref to a mut
+        /// ref. This only works, and I would not normally reccomend.
+        pub fn output_prompt(ui: &&mut imgui::Ui, r1: f64, r2: f64, desired: f64) {
+            let (teeth, c2c) = belt_length_actual(
+                r1,
+                r2,
+                f64::floor(desired / super::PITCH_5MM_BELT),
+                super::PITCH_5MM_BELT
+            );
+
+            ui.text_colored([1.0, 1.0, 0.0, 1.0], "Belts with teeth of multiple of 5");
+            ui.text(format!("Number of teeth: {}\nCenter-to-Center: {}\n",
+                teeth,
+                c2c
+            ));
+
+            let (teeth, c2c) = super::normal::belt_length_no_round(
+                r1,
+                r2,
+                f64::floor(desired / super::PITCH_5MM_BELT),
+                super::PITCH_5MM_BELT
+            );
+
+            ui.text_colored([1.0, 1.0, 0.0, 1.0], "Exactly toothed belt lower");
+            ui.text(format!("Number of teeth: {}\nCenter-to-Center: {}",
+                teeth,
+                c2c
+            ));
+
+            let (teeth, c2c) = super::normal::belt_length_no_round(
+                r1,
+                r2,
+                f64::ceil(desired / super::PITCH_5MM_BELT),
+                super::PITCH_5MM_BELT
+            );
+
+            ui.text_colored([1.0, 1.0, 0.0, 1.0], "Exactly toothed belt upper");
+            ui.text(format!("Number of teeth: {}\nCenter-to-Center: {}",
+                teeth,
+                c2c
+            ));
         }
     }
 }
@@ -114,17 +222,8 @@ fn main() {
                             pulley_desired_f64 * 2.0 + PI / 2.0 * (diam1 + diam2)
                             + f64::powi(diam1 + diam2, 2) / 4.0 / pulley_desired_f64;
 
-                        let (teeth, ctc) = calc::contra::belt_length_actual(
-                            diam1,
-                            diam2,
-                            f64::floor(pulley_desired_f64 / calc::PITCH_5MM_BELT),
-                            calc::PITCH_5MM_BELT
-                        );
+                        calc::contra::output_prompt(&ui, diam1, diam2, pulley_desired_f64);
 
-                        ui.text(format!("Number of teeth closest to desired: {}\nCenter-to-Center closest to desired: {}in",
-                            teeth,
-                            ctc
-                        ));
                     },
                     Choices::NormalBelt => {
                         ui.text(PROMPT_BELT);
@@ -141,16 +240,7 @@ fn main() {
 
                         let pulley_desired_f64 = PI * (r1 + r2) + 2.0 * f64::sqrt(pulley_desired_f64.powi(2) + (r2 - r1).powi(2));
 
-                        let (teeth, c2c) = calc::normal::belt_length_actual(
-                            r1,
-                            r2,
-                            f64::floor(pulley_desired_f64 / calc::PITCH_5MM_BELT),
-                            calc::PITCH_5MM_BELT
-                        );
-                        ui.text(format!("Number of teeth closest to desired: {}\nCenter-to-Center closest to desired: {}",
-                            teeth,
-                            c2c
-                        ));
+                        calc::normal::output_prompt(&ui, r1, r2, pulley_desired_f64);
                     }
                 }
             });
