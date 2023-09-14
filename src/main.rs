@@ -77,7 +77,7 @@ enum Choices {
 const PROMPT_BELT: &'static str = r#"
 Input your desired pulley tooth counts, and desired spacing in inches.
 Belts are assumed to be 5mm.
-Units should be provided.
+Units for outputs are provided.
 "#;
 
 fn main() {
@@ -107,9 +107,6 @@ fn main() {
                             .build();
                         let pulley_desired_f64 = <f32 as Into<f64>>::into(pulley_desired_space);
 
-                        // TODO: Figure out if these are diameters or DP
-                        //
-                        // NOTE from Charlotte: pretty sure they're diameters
                         let diam1 = calc::get_diam_5mm(pulley_one_teeth);
                         let diam2 = calc::get_diam_5mm(pulley_two_teeth);
 
@@ -124,8 +121,9 @@ fn main() {
                             calc::PITCH_5MM_BELT
                         );
 
-                        ui.text(&format!("Number of teeth closest to desired: {}\nCenter-to-Center closest to desired: {}in",
-                            teeth, ctc
+                        ui.text(format!("Number of teeth closest to desired: {}\nCenter-to-Center closest to desired: {}in",
+                            teeth,
+                            ctc
                         ));
                     },
                     Choices::NormalBelt => {
@@ -149,7 +147,10 @@ fn main() {
                             f64::floor(pulley_desired_f64 / calc::PITCH_5MM_BELT),
                             calc::PITCH_5MM_BELT
                         );
-                        ui.text(&format!("c2c: {}, tooth count: {}", c2c, teeth));
+                        ui.text(format!("Number of teeth closest to desired: {}\nCenter-to-Center closest to desired: {}",
+                            teeth,
+                            c2c
+                        ));
                     }
                 }
             });
